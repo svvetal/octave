@@ -1,0 +1,138 @@
+clc;
+clear all;
+close all;
+fprintf('------------------------------');
+fprintf('Sampling and Reconstruction');
+fprintf('------------------------------\n');
+F = input('Input1: Frequency of analog sinusoid in Hz:');
+fn=2*F;
+fprintf('\nOutput1: for sinusoid of freq. %d Hz, Nyquist rate is %d Hz \n \n',F ,fn);
+T = 1/F;
+t = 0:0.001*T:4*T;
+x = 2*cos(2*pi*F*t);
+
+%% UNDERSAMPLING
+fprintf('\n\n-----------------------------------');
+fprintf('Case 1: UNDERSAMPLING');
+fprintf('----------------------------------------\n');
+fsun=input('Input2: Choose Appropriate Sampling frequency in Hz:');
+if fsun >= fn
+  error('For Undersampling, sampling frequency must be smaller than Nyquist rate');
+endif
+t1=0:(1/fsun):4*T;
+xun=2*cos(2*pi*F*t1); 
+
+%% NYQUISTSAMPLING
+fprintf('\n\n------------------------------------------'); 
+fprintf('Case:2 NyquistSampling');
+fprintf('----------------------------------------------\n');
+fsn=input('Choose Appropriate sampling Frequency in Hz:');
+if fsn ~= fn
+  error('For NyquistSampling, sampling frequency must be equal to Nyquist rate');
+endif
+t2=0:(1/fsn):4*T;
+xn=2*cos(2*pi*F*t2); 
+
+%% OVERSAMPLING
+fprintf('\n\n------------------------------------------'); 
+fprintf('Case:3 OverSampling');
+fprintf('----------------------------------------------\n');
+fsov=input('Choose Appropriate sampling Frequency in Hz:');
+if fsov <= fn
+  error('For OverSampling, sampling frequency must be greater than Nyquist rate');
+endif
+t3=0:(1/fsov):4*T;
+xov=2*cos(2*pi*F*t3); 
+
+%% RECONSTRUCTED ANALOG SIGNAL
+% Case:1 From UnderSampled Signal
+xr1 = zeros(1,length(t));
+for k=1:length(t)
+    for p = 1:length(t1)
+        xr1(k)=xr1(k)+xun(p)*sinc((k-1)*fsun*0.001*T-(p-1));
+    end
+end
+
+% Case:2 From NyquistSampled Signal
+xr2 = zeros(1,length(t));
+for k=1:length(t)
+    for p = 1:length(t2)
+        xr2(k)=xr2(k)+xn(p)*sinc((k-1)*fsn*0.001*T-(p-1));
+    end
+end
+
+% Case:3 From OverSampled Signal
+xr3 = zeros(1,length(t));
+for k=1:length(t)
+    for p = 1:length(t3)
+        xr3(k)=xr3(k)+xov(p)*sinc((k-1)*fsov*0.001*T-(p-1));
+    end
+end
+
+%% PLOTTING
+figure
+subplot(4,2,1);
+plot(t,x,'-','Linewidth',2);
+title(['Sinusoid Analog Signal (' num2str(F) ' Hz) to be sampled']);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,2);
+plot(t,x,'-','Linewidth',2);
+title(['Sinusoid Analog Signal (' num2str(F) ' Hz) to be recontructed']);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,3);
+plot(t,x,'--','Linewidth',1);
+hold on;
+stem(t1,xun,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title(['UnderSampled signal with ' num2str(fsun) ' Hz sampling rate']);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,5);
+plot(t,x,'--','Linewidth',1);
+hold on;
+stem(t2,xn,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title(['NquistSampled signal with ' num2str(fn) ' Hz sampling rate']);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,7);
+plot(t,x,'--','Linewidth',1);
+hold on;
+stem(t3,xov,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title(['OverSampled signal with ' num2str(fsov) ' Hz sampling rate']);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,4);
+plot(t,x,'--','Linewidth',1);
+hold on;
+plot(t,xr1,'-','Linewidth',1);
+stem(t1,xun,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title('Reconstructed signal(red) from UnderSampled signal');
+ylim([-2.5,2.5]);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,6);
+plot(t,x,'--','Linewidth',1);
+hold on;
+plot(t,xr2,'-','Linewidth',1);
+stem(t2,xn,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title('Reconstructed signal(red) from NyquistSampled signal');
+ylim([-2.5,2.5]);
+xlabel('time');
+ylabel('amplitude');
+
+subplot(4,2,8);
+plot(t,x,'--','Linewidth',1);
+hold on;
+plot(t,xr3,'-','Linewidth',1);
+stem(t3,xov,'k','Linewidth',2,'MarkerFaceColor','red','MarkerEdgeColor','yellow');
+title('Reconstructed signal(red) from OverSampled signal');
+ylim([-2.5,2.5]);
+xlabel('time');
+ylabel('amplitude');
